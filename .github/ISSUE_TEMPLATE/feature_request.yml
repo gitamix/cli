@@ -1,0 +1,68 @@
+name: Feature or improvement
+description: Propose a new capability or an improvement to existing behavior.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for new functionality or meaningful improvements to existing behavior.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Describe what should be added or improved.
+      placeholder: Add support for rendering templates from a directory recursively.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Explain why this change is needed and what value it brings.
+      placeholder: This would let users scaffold larger projects without invoking the tool repeatedly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe the expected solution direction, if one already exists.
+      placeholder: Add a recursive mode that walks the input tree and renders supported files.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe rejected or less preferred alternatives, if relevant.
+      placeholder: Users could script repeated calls, but that duplicates traversal logic outside the tool.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Define the observable conditions for completion.
+      value: |
+        - [ ] The requested behavior is implemented
+        - [ ] The result is verifiable by a reviewer or user
+        - [ ] Tests are added or updated where needed
+        - [ ] Documentation is updated if needed
+        - [ ] CHANGELOG.md is updated if the change is user-visible
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: Describe what should not be part of this change.
+      placeholder: This does not need to add new template syntax.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add links to related issues, pull requests, docs, examples, or discussions.
+      placeholder: Link to relevant issue, PR, spec, or external reference.

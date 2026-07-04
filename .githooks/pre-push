@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+# Pre-push hook: run quality checks before push
+echo "Running quality checks..."
+
+if ! make check; then
+    echo "❌ Quality checks failed. Push aborted."
+    exit 1
+fi
+
+echo "✅ Quality checks passed."
+exit 0

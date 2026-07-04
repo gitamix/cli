@@ -1,0 +1,54 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - errcheck
+    - revive
+    - misspell
+    - unconvert
+    - unparam
+    - gocyclo
+    - goimports
+    - paralleltest
+  disable:
+    - typecheck
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  revive:
+    rules:
+      - name: exported
+        severity: warning
+        disabled: false
+      - name: package-comments
+        severity: warning
+        disabled: false
+  paralleltest:
+    path: ./tools/paralleltest.go
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - unparam
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

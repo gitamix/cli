@@ -1,0 +1,84 @@
+name: Bug report
+description: Report broken behavior that needs to be fixed.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when something works incorrectly and needs a fix.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe what is broken.
+      placeholder: The command exits with status 0, but the generated file is empty.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Describe what should happen instead.
+      placeholder: The command should generate a file with the rendered template.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: Describe what happens now.
+      placeholder: The file is created, but it contains no rendered output.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List the shortest reliable sequence that reproduces the bug.
+      placeholder: |
+        1. Run ...
+        2. Provide ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Explain why this bug matters and who is affected.
+      placeholder: This blocks template generation in CI for all new projects.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-fix
+    attributes:
+      label: Proposed fix
+      description: If you already have an implementation idea, describe it here.
+      placeholder: The renderer should validate the parsed template before writing output.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Define how we know the bug is fixed.
+      value: |
+        - [ ] The bug is reproducible before the fix
+        - [ ] The bug no longer reproduces after the fix
+        - [ ] Tests are added or updated where needed
+        - [ ] Documentation is updated if needed
+        - [ ] CHANGELOG.md is updated if the change is user-visible
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add logs, screenshots, links, related issues, or related pull requests.
+      placeholder: Related issue, stack trace, screenshot, or design note.

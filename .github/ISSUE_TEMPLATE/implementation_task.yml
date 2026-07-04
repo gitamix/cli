@@ -1,0 +1,73 @@
+name: Implementation task
+description: Define an engineering task with goals, constraints, and acceptance criteria.
+title: "[Task]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for implementation work that already has a relatively clear technical direction.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: Describe what needs to be implemented, changed, or removed.
+      placeholder: Add a validation step that rejects unsupported template variables before rendering.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Explain why this work is needed.
+      placeholder: This prevents invalid project generation and makes failures easier to diagnose.
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation notes
+      description: Describe constraints, recommendations, expected architecture, or useful references.
+      placeholder: Reuse the existing parser and fail before output files are written.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Define the conditions for completion.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: Describe what should not be done as part of this issue.
+      placeholder: No changes to template syntax or CLI flags.
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of done
+      description: Confirm the final quality bar for this task.
+      value: |
+        - [ ] Code is implemented
+        - [ ] Tests are added or updated where needed
+        - [ ] Documentation is updated where needed
+        - [ ] STYLE.MD is followed
+        - [ ] CHANGELOG.md is updated if the change is user-visible
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add links to related issues, pull requests, docs, examples, or discussions.
+      placeholder: Link to related issue, PR, code area, or design note.
