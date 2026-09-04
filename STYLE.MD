@@ -49,7 +49,6 @@
   - [Testify](#testify)
   - [Separate test packages](#separate-test-packages)
   - [Canonical test template](#canonical-test-template)
-  - [Structs in tests](#structs-in-tests)
   - [Parallel tests](#parallel-tests)
 
 ## Declarative style
@@ -2165,11 +2164,25 @@ to make **asserts** in your tests.
 
 > ❌ Never use `t.Error()` because it definitely damages the reading!
 
-**❌ Bad:**
+### No table-driven tests
 
-VSCode and JetBrains Goland can create unit-tests templates in one click
-that extremely improves your productivity but it still needs to refactor
-the `t.Run()` section!
+**📌 Rule**:
+
+Do not use table-driven tests.
+Write every case as its own
+`t.Run(name, func(t *testing.T) { ... })` block with inline setup, act, and assert.
+Do not collect cases into a `tests := []struct{...}` slice
+and do not define `args`/`want` helper structs.
+
+**🤔 Why**:
+
+Both VSCode and JetBrains Goland can generate unit-test templates in one click,
+which boosts productivity, but both produce table-driven tests.
+That is not the style we use in this project.
+We write every `t.Run()` block by hand so that each case stays absolutely
+independent from the others and can assert exactly what it needs, in its own way.
+
+**❌ Bad:**
 
 ```go
 package file
@@ -2197,31 +2210,27 @@ func TestName_String(t *testing.T) {
 **✅ Good:**
 
 ```go
-package file
+package file_test
 
 import (
     "testing"
 
+    impl "github.com/you/repo/file"
     "github.com/stretchr/testify/assert"
 )
 
 func TestName_String(t *testing.T) {
-    tests := []struct {
-        name string
-        n    Name
-        want string
-    }{
-        // TODO: Add test cases.
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            assert.Equal(
-                t,
-                tt.want,
-                tt.n.String(),
-            )
-        })
-    }
+    t.Parallel()
+
+    t.Run("returns original file name", func(t *testing.T) {
+        t.Parallel()
+        n := impl.NewName("example.txt")
+        assert.Equal(
+            t,
+            "example.txt",
+            n.String(),
+        )
+    })
 }
 ```
 
@@ -2231,7 +2240,6 @@ or the implementation must have some functionality
 
 **🔗 Related rules**:
 
-- [Structs in tests](#structs-in-tests)
 - [Parallel tests](#parallel-tests)
 
 ### Canonical test template
@@ -2239,10 +2247,13 @@ or the implementation must have some functionality
 **📌 Rule**:
 
 Use one canonical test shape as the default starting point for ordinary unit tests.
+Each case is its own `t.Run(name, func(t *testing.T) { ... })` block with inline setup, act, and assert.
+Do not collect cases into a `tests := []struct{...}` slice and do not define `args`/`want` helper structs.
 
 **🤔 Why**:
 
-When all tests look roughly the same, they are easier to scan, review, copy, and extend.
+When every case is a self-contained `t.Run` block, the setup, the action, and the assertion sit next to each other.
+That makes each case readable on its own, easier to review, copy, and extend without touching the others.
 
 **✅ Good: only value returned**:
 
@@ -2254,37 +2265,20 @@ import (
 
     impl "github.com/you/repo/file"
     "github.com/stretchr/testify/assert"
-    "github.com/stretchr/testify/require"
 )
 
 func TestName_String(t *testing.T) {
     t.Parallel()
-    type want struct {
-        name string
-    }
-    tests := []struct {
-        name string
-        n file.Name
-        want want
-    }{
-        {
-            name: "returns original file name",
-            n: impl.NewName("example.txt")
-            want: want{
-                value: "example.txt",
-            },
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            t.Parallel()
-            assert.Equal(
-                t,
-                tt.want.value,
-                tt.n.String(),
-            )
-        })
-    }
+
+    t.Run("returns original file name", func(t *testing.T) {
+        t.Parallel()
+        n := impl.NewName("example.txt")
+        assert.Equal(
+            t,
+            "example.txt",
+            n.String(),
+        )
+    })
 }
 ```
 
@@ -2303,50 +2297,19 @@ import (
 func TestParseName(t *testing.T) {
     t.Parallel()
 
-    type args struct {
-        value string
-    }
-    type want struct {
-        name impl.Name
-        err error
-    }
+    t.Run("parses valid file name", func(t *testing.T) {
+        t.Parallel()
+        got, gotErr := impl.ParseName("example.txt")
+        assert.Equal(t, impl.NewName("example.txt"), got)
+        assert.NoError(t, gotErr)
+    })
 
-    tests := []struct {
-        name string
-        args args
-        want want
-    }{
-        {
-            name: "parses valid file name",
-            args: args{
-                value: "example.txt",
-            },
-            want: want{
-                name: impl.NewName("example.txt"),
-                err:  nil,
-            },
-        },
-        {
-            name: "returns error for invalid file name",
-            args: args{
-                value: "",
-            },
-            want: want{
-                name: impl.Name{},
-                err:  impl.ErrInvalidName,
-            },
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            t.Parallel()
-
-            got, gotErr := impl.ParseName(tt.args.value)
-            assert.Equal(t, tt.want.name, got)
-            assert.ErrorIs(t, gotErr, tt.want.err)
-        })
-    }
+    t.Run("returns error for invalid file name", func(t *testing.T) {
+        t.Parallel()
+        got, gotErr := impl.ParseName("")
+        assert.Equal(t, impl.Name{}, got)
+        assert.ErrorIs(t, gotErr, impl.ErrInvalidName)
+    })
 }
 ```
 
@@ -2365,46 +2328,17 @@ import (
 func TestName_HasExt(t *testing.T) {
     t.Parallel()
 
-    type args struct {
-        value string
-    }
-    type want struct {
-        ok bool
-    }
+    t.Run("returns true when file has extension", func(t *testing.T) {
+        t.Parallel()
+        n := impl.NewName("example.txt")
+        assert.Equal(t, true, n.HasExt())
+    })
 
-    tests := []struct {
-        name string
-        args args
-        want want
-    }{
-        {
-            name: "returns true when file has extension",
-            args: args{
-                value: "example.txt",
-            },
-            want: want{
-                ok: true,
-            },
-        },
-        {
-            name: "returns false when file has no extension",
-            args: args{
-                value: "example",
-            },
-            want: want{
-                ok: false,
-            },
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            t.Parallel()
-
-            n := impl.NewName(tt.args.value)
-            assert.Equal(t, tt.want.ok, n.HasExt())
-        })
-    }
+    t.Run("returns false when file has no extension", func(t *testing.T) {
+        t.Parallel()
+        n := impl.NewName("example")
+        assert.Equal(t, false, n.HasExt())
+    })
 }
 ```
 
@@ -2412,7 +2346,6 @@ func TestName_HasExt(t *testing.T) {
 
 - [Testify](#testify)
 - [Separate test packages](#separate-test-packages)
-- [Structs in tests](#structs-in-tests)
 - [Parallel tests](#parallel-tests)
 
 ### Separate test packages
@@ -2440,24 +2373,18 @@ import (
 
 func TestName_String(t *testing.T) {
     t.Parallel()
-    tests := []struct {
-        name string
-        n    Name
-        // ...
-    }{
-        {
-            name: "some case",
-            n: Name{ // Allows to create with a literal
-                value: "example.txt", // With unexported fields!
-            },
-            // ...
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            // ...
-        })
-    }
+
+    t.Run("some case", func(t *testing.T) {
+        t.Parallel()
+        n := Name{ // Allows to create with a literal
+            value: "example.txt", // With unexported fields!
+        }
+        assert.Equal(
+            t,
+            "example.txt",
+            n.String(),
+        )
+    })
 }
 ```
 
@@ -2470,244 +2397,31 @@ import (
     "testing"
 
     "github.com/you/repo/file"
+    "github.com/stretchr/testify/assert"
 )
 
 func TestName_String(t *testing.T) {
     t.Parallel()
-    tests := []struct {
-        name string
-        n    file.Name
-        // ...
-    }{
-        {
-            name: "some case",
-            n: file.NewName("example.txt"), // Obligates to use the constructor
-            // ...
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-           // ...
-        })
-    }
+
+    t.Run("some case", func(t *testing.T) {
+        t.Parallel()
+        n := file.NewName("example.txt") // Obligates to use the constructor
+        assert.Equal(
+            t,
+            "example.txt",
+            n.String(),
+        )
+    })
 }
 ```
 
-Using unexported fields in tests is also prohibited
-excluding the test structs in which we define the test cases.
+Using unexported fields in tests is also prohibited.
 But it still does not allow you to use this fields of the implementation that you test!
 
 **🔗 Related rules**:
 
 - [Fields must be unexported](#fields-must-be-unexported)
 - [Any type must have a constructor](#any-type-must-have-a-constructor)
-- [Structs in tests](#structs-in-tests)
-
-### Structs in tests
-
-**📌 Rule**:
-
-Create the structs to justify bootraping the cases in your tests.
-It improves declaration and understafing by reading of your test cases.
-
-**🤔 Why**:
-
-Dedicated `args` and `want` structs make test data more declarative and scale better than long anonymous field lists.
-
-**📝 Exceptions / Notes**:
-
-The [Canonical test template](#canonical-test-template) above is the minimal default.
-The examples below are intentionally larger because they compare several ways to structure the same test.
-
-**❌ Bad:**
-
-```go
-package config
-
-import (
-    "testing"
-
-    "github.com/stretchr/testify/assert"
-)
-
-func TestParseConfig(t *testing.T) {
-    tests := []struct {
-        name    string
-        fname   string
-        want    Config
-        wantErr bool
-    }{
-        {
-            name:    "ok",
-            fname:   "path/to/config",
-            // ...
-            wantErr: false,
-        },
-        {
-            name:    "failed to parse",
-            fname:   "path/to/config",
-            // ...
-            wantErr: true,
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got, gotErr := ParseConfig(tt.fname)
-            assert.Equal(
-                t,
-                tt.want,
-                got,
-            )
-            if tt.wantErr {
-                assert.Error(t, gotErr)
-            } else {
-                assert.NoErrorf(
-                    t,
-                    gotErr,
-                    "unexpected error: %v",
-                    gotErr,
-                )
-            }
-        })
-    }
-}
-```
-
-**✅ Good:**
-
-```go
-package config_test
-
-import (
-    "testing"
-
-    impl "github.com/you/repo/config"
-    "github.com/stretchr/testify/assert"
-)
-
-func TestParseConfig(t *testing.T) {
-    type args struct {
-        fname string
-    }
-    type want struct {
-        config  impl.Config
-        errored bool
-    }
-    tests := []struct {
-        name string
-        args args
-        want want
-    }{
-        {
-            name: "ok",
-            args: args{
-                fname: "path/to/file",
-            },
-            want: want{
-                config:  impl.NewConfig(),
-                errored: false,
-            },
-        },
-        {
-            name: "failed to parse",
-            args: args{
-                fname: "path/to/file",
-            },
-            want: want{
-                config:  impl.NewConfig(),
-                errored: true,
-            },
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got, gotErr := impl.ParseConfig(tt.args.fname)
-            assert.Equal(
-                t,
-                tt.want.config,
-                got,
-            )
-            if tt.want.errored {
-                assert.Error(t, gotErr)
-            } else {
-                assert.NoErrorf(
-                    t,
-                    gotErr,
-                    "unexpected error: %v",
-                    gotErr,
-                )
-            }
-        })
-    }
-}
-```
-
-**⭐️ Better:**
-
-```go
-package config_test
-
-import (
-    "testing"
-
-    impl "github.com/you/repo/config"
-    "github.com/stretchr/testify/assert"
-)
-
-func TestParseConfig(t *testing.T) {
-    type args struct {
-        fname string
-    }
-    type want struct {
-        config  impl.Config
-        err error
-    }
-    tests := []struct {
-        name string
-        args args
-        want want
-    }{
-        {
-            name: "ok",
-            args: args{
-                fname: "path/to/file",
-            },
-            want: want{
-                config: impl.NewConfig(),
-                err:    nil,
-            },
-        },
-        {
-            name: "failed to parse",
-            args: args{
-                fname: "path/to/file",
-            },
-            want: want{
-                config: impl.NewConfig(),
-                err:    impl.ErrNotFound,
-            },
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got, gotErr := impl.ParseConfig(tt.args.fname)
-            assert.Equal(
-                t,
-                tt.want.config,
-                got,
-            )
-            assert.ErrorIs(
-                t,
-                gotErr,
-                tt.want.err,
-            )
-        })
-    }
-}
-```
-
-That way you bring declarative style to describe the test cases
-and the code supposed to be more readable and understable.
 
 ### Parallel tests
 

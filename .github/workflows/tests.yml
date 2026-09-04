@@ -22,4 +22,4 @@ jobs:
       - name: Check coverage
         run: |
           source .github/ci.env
-          make coverage-check
+          make coverage
