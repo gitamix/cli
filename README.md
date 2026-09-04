@@ -1,10 +1,10 @@
 # osxec
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/Ilya-Sitnikov/gotmpl.svg)](https://pkg.go.dev/github.com/Ilya-Sitnikov/gotmpl)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Ilya-Sitnikov/gotmpl)](https://goreportcard.com/report/github.com/Ilya-Sitnikov/gotmpl)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gitamix/cli.svg)](https://pkg.go.dev/github.com/gitamix/cli)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gitamix/cli)](https://goreportcard.com/report/github.com/gitamix/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Ilya-Sitnikov/gotmpl)
-[![Release](https://img.shields.io/github/v/release/Ilya-Sitnikov/gotmpl?style=flat)](https://github.com/Ilya-Sitnikov/gotmpl/releases)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/gitamix/cli)
+[![Release](https://img.shields.io/github/v/release/gitamix/cli?style=flat)](https://github.com/gitamix/cli/releases)
 
 Short description of the project.
 
@@ -22,7 +22,7 @@ Show simple examples how the module works.
 
 ## Documentation
 
-Full API reference is available on [pkg.go.dev](https://pkg.go.dev/github.com/Ilya-Sitnikov/gotmpl)
+Full API reference is available on [pkg.go.dev](https://pkg.go.dev/github.com/gitamix/cli)
 
 ## Requirements
 
@@ -42,4 +42,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## Author / Contact
 
-Maintained by [Ilya Sitnikov](https://github.com/Ilya-Sitnikov)
+Maintained by [Ilya Sitnikov](https://github.com/gitamix)
