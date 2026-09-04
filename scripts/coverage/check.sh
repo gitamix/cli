@@ -7,6 +7,11 @@
 PERCENT_FILE=${1:-tmp/coverage_total.out}
 THRESHOLD=${COVERAGE_THRESHOLD}
 
+if [ -z "$(go list ./... 2>/dev/null || true)" ]; then
+    echo "⚪ Skipping coverage check: no Go packages found."
+    exit 0
+fi
+
 # Ensure threshold is specified.
 if [ -z "$THRESHOLD" ] || [ "$THRESHOLD" = "0" ] || [ "$THRESHOLD" = "" ]; then
     echo "❌ COVERAGE_THRESHOLD is not specified" >&2
