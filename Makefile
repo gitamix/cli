@@ -9,4 +9,4 @@ include make/pr.mk
 
 # Run all checks required to validate the codebase before merging.
 .PHONY: check
-check: test coverage-check lint 
+check: test coverage lint 
