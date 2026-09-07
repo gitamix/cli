@@ -1,2 +1,3 @@
-// Package main defines the entry point for the gitamix command.
-package main
+// Package gitamix provides the root command of the gitamix CLI
+// and registers all subcommands available to the user.
+package gitamix
