@@ -1,0 +1,92 @@
+# Git branch rules.
+branch:
+  # task rules to enforce a specific format
+  # for task identifiers in branch names.
+  task:
+    issue:
+      # Level for task rules: critical, warning, info
+      level: "info"
+    # Regular expression pattern for the task identifier.
+    pattern: (TASK|PROJ|BUG)-[0-9]+
+  name:
+    issue:
+      # Level for branch name rules: critical, warning, info
+      level: "warning"
+    # Regular expression pattern for branch names.
+    # This pattern allows only feature, bugfix and hotfix
+    # branches with an uppercase task ID.
+    pattern: ^(feature|bugfix|hotfix)/[A-Z]+-\d+
+
+# Git commit rules.
+commit:
+  # Commit message rules, grouping subject and body configuration.
+  message:
+    # Subject rules (the first line of the commit message).
+    subject:
+      # Description rules for the subject text,
+      # excluding the task identifier, type, and scope.
+      description:
+        # Length interval for the subject description text.
+        length:
+          issue:
+            # Level for description length rules: critical, warning, info
+            level: warning
+          # Minimum number of characters allowed in the subject description.
+          min: 10
+          # Maximum number of characters allowed in the subject description.
+          max: 72
+      # Task integration rules for the commit subject.
+      task:
+        # Identifier rules for the task reference in the commit subject.
+        id:
+          issue:
+            # Level for task id rules: critical, warning, info
+            level: critical
+          # Regular expression pattern for the task identifier.
+          pattern: (TASK|PROJ|BUG)-[0-9]+
+    # Body rules (the text after the subject, separated by a blank line).
+    body:
+      # Mandate rules: commit types for which the body is mandatory.
+      mandate:
+        # Commit types for which the body is mandatory.
+        types:
+          issue:
+            # Level for body mandate rules: critical, warning, info
+            level: critical
+          # List of commit types that require a body.
+          list:
+            - fix
+            - chore
+            - refactor
+            - perf
+      # Length interval for the body text.
+      length:
+        issue:
+          # Level for body length rules: critical, warning, info
+          level: info
+        # Minimum number of characters allowed in the body.
+        min: 10
+        # Maximum number of characters allowed in the body.
+        max: 255
+  # Scope rules for the commit subject
+  # (the part in parentheses after the type).
+  scope:
+    issue:
+      # Level for scope rules: critical, warning, info
+      level: warning
+    # Regular expression pattern for the commit scope.
+    pattern: ^[A-Za-z _-]+$
+  # Allowed commit types (e.g. feat, fix, chore).
+  types:
+    issue:
+      # Level for commit type rules: critical, warning, info
+      level: critical
+    # List of allowed commit types.
+    list:
+      - feat
+      - fix
+      - chore
+      - refactor
+      - perf
+      - test
+      - docs
