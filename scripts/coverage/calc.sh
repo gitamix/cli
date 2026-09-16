@@ -16,12 +16,14 @@ if [ -z "$coverage_file" ] || [ -z "$output_file" ] || [ -z "$label" ]; then
 fi
 
 # Filter out main packages and calculate coverage percentage.
+module_path=$(go list -m 2>/dev/null || true)
+root_pkg_pattern="^${module_path}/[^/]*\.go:"
 filtered_file="${coverage_file}.filtered"
 head -n1 "${coverage_file}" > "${filtered_file}"
 if [ -n "$include_pattern" ]; then
-	grep -v '/cmd/' "${coverage_file}" | grep "$include_pattern" | tail -n +2 >> "${filtered_file}"
+	grep -v '/cmd/' "${coverage_file}" | grep -v "$root_pkg_pattern" | grep "$include_pattern" | tail -n +2 >> "${filtered_file}"
 else
-	grep -v '/cmd/' "${coverage_file}" | grep -v '/internal/test/' | tail -n +2 >> "${filtered_file}"
+	grep -v '/cmd/' "${coverage_file}" | grep -v "$root_pkg_pattern" | grep -v '/internal/test/' | tail -n +2 >> "${filtered_file}"
 fi
 
 percent=$(go tool cover -func="${filtered_file}" 2>/dev/null \

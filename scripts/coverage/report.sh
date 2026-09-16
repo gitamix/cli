@@ -22,9 +22,11 @@ if [ ! -f "tmp/coverage_integration.out" ]; then
 fi
 
 # Combine coverage files (excluding main packages and test utilities)
+module_path=$(go list -m 2>/dev/null || true)
+root_pkg_pattern="^${module_path}/[^/]*\.go:"
 echo "mode: count" > tmp/coverage.out
-tail -n +2 tmp/coverage_unit.out | grep -v '/cmd/' | grep -v '/internal/test/' >> tmp/coverage.out || true
-tail -n +2 tmp/coverage_integration.out | grep -v '/cmd/' | grep -v '/internal/test/' >> tmp/coverage.out || true
+tail -n +2 tmp/coverage_unit.out | grep -v '/cmd/' | grep -v "$root_pkg_pattern" | grep -v '/internal/test/' >> tmp/coverage.out || true
+tail -n +2 tmp/coverage_integration.out | grep -v '/cmd/' | grep -v "$root_pkg_pattern" | grep -v '/internal/test/' >> tmp/coverage.out || true
 
 # Calculate unit test coverage percentage
 ./scripts/coverage/calc.sh \
