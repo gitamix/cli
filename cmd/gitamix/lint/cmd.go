@@ -1,10 +1,18 @@
 package lint
 
 import (
-	"log"
+	"context"
+	"fmt"
+	"os"
 
+	"github.com/gitamix/git/client/git"
+	"github.com/gitamix/lint/branch"
 	"github.com/gitamix/lint/config"
+	"github.com/gitamix/lint/issue"
+	"github.com/sitnikovik/osxec/shell"
 	"github.com/spf13/cobra"
+
+	igit "github.com/gitamix/cli/internal/client/git"
 )
 
 var (
@@ -22,9 +30,42 @@ var (
 subject length checks, scope enforcement, and task ID verification`,
 		Example: `  gitamix lint --config=/path/to/project/gitamix.lint.yml`,
 		Run: func(_ *cobra.Command, _ []string) {
-			_, err := config.Load(flags.config)
+			cfg, err := config.Load(flags.config)
 			if err != nil {
-				log.Fatalf("ERROR: %s", err)
+				fmt.Printf("ERROR: %s\n", err)
+				os.Exit(1)
+			}
+			ctx := context.Background()
+			cli := igit.NewClient(
+				git.NewClient(
+					shell.NewShell(),
+				),
+			)
+			currbr, err := cli.CurrentBranch(ctx)
+			if err != nil {
+				fmt.Printf(
+					"ERROR: failed to get current branch: %s\n",
+					err,
+				)
+				os.Exit(1)
+			}
+			iss := make([]issue.Issue, 0, 10)
+			iss = append(
+				iss,
+				branch.
+					NewBranch(
+						currbr,
+						cfg.Branch(),
+					).
+					Issues()...,
+			)
+			fmt.Printf("%d issues\n", len(iss))
+			for _, is := range iss {
+				fmt.Printf(
+					"%s: %s\n",
+					is.Type().String(),
+					is.Message(),
+				)
 			}
 		},
 	}

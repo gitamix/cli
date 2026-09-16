@@ -7,16 +7,13 @@ branch:
       # Level for task rules: critical, warning, info
       level: "info"
     # Regular expression pattern for the task identifier.
-    pattern: (TASK|PROJ|BUG)-[0-9]+
+    pattern: ^(\d+)-[A-Za-z_-]+$
   name:
     issue:
       # Level for branch name rules: critical, warning, info
       level: "warning"
     # Regular expression pattern for branch names.
-    # This pattern allows only feature, bugfix and hotfix
-    # branches with an uppercase task ID.
-    pattern: ^(feature|bugfix|hotfix)/[A-Z]+-\d+
-
+    pattern: ^\d+[A-Za-z_-]+$
 # Git commit rules.
 commit:
   # Commit message rules, grouping subject and body configuration.

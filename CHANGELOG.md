@@ -9,5 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Git client to interract with a git repository
-- Get current brach from a git repository
+- Git client to interact with a git repository
+- Get current branch from a git repository
+- Lint current branch with config using `lint` command

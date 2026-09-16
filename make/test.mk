@@ -7,7 +7,7 @@ test: unit-test integration-test
 unit-test:
 	@echo 🧪 Running unit tests...
 	@mkdir -p tmp
-	@pkgs=$$(go list ./... 2>/dev/null | grep -v 'internal/test/integration' || true); \
+	@pkgs=$$(go list ./... 2>/dev/null | grep -v 'internal/test/integration' | grep -v '/cmd/' | grep -vxF "$$(go list -m)" || true); \
 	if [ -n "$$pkgs" ]; then \
 		go test -race -count=1 \
 		-covermode=atomic \
@@ -32,6 +32,8 @@ integration-test:
 	fi; \
 	coverpkgs=$$(go list ./... 2>/dev/null \
 		| grep -v '/internal/test/' \
+		| grep -v '/cmd/' \
+		| grep -vxF "$$(go list -m)" \
 		| tr '\n' ',' | sed 's/,$$//' || true); \
  	go test -tags=integration \
 		-race -count=1 -v \
