@@ -21,10 +21,8 @@ make pr release <version>  # opens GitHub PR page with release template
 ## Architecture
 
 ```plaintext
-cmd/          — entry-points for tooling (generator, 01)
-config/       — YAML config types, loading, unmarshaling (branch, task, value subpackages)
-errs/         — custom error definitions
-internal/test/ — test helpers: testcontainers, fakes, fixtures, testdata
+cmd/          — CLI command definitions (gitamix, lint)
+internal/     — internal packages: git client adapter (client/git), test helpers (test/mock)
 scripts/      — automation: itsme.sh, coverage checks, PR creation
 make/         — Makefile include fragments (test, lint, coverage, pr, setup)
 .github/      — CI workflows (go_guard, tests, quality, release)
@@ -55,7 +53,7 @@ Formatters: gofmt + goimports.
 
 - **Unit tests**: `go test -race -count=1 ./...` excluding `internal/test/integration`
 - **Integration tests**: tagged with `integration`, cover real packages via `-coverpkg`
-- **Coverage**: unit profile → `tmp/coverage_unit.out`, integration → `tmp/coverage_integration.out`, combined → `tmp/coverage_total.out`
+- **Coverage**: unit profile → `tmp/coverage_unit.out`, integration → `tmp/coverage_integration.out`, combined profile → `tmp/coverage.out`, total percentage → `tmp/coverage_total.out`
 - Threshold: 90% (see `.github/ci.env`)
 
 ## Git / CI / Release
