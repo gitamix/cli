@@ -42,3 +42,19 @@ func WithMergeBase(
 		r.funcs.MergeBase = fn
 	}
 }
+
+// WithCommits sets the function that is executed
+// when Commits of MockGit is called.
+//
+// The specified function determines the commits and the error
+// returned by the Commits method of the mock.
+func WithCommits(
+	fn func(
+		ctx context.Context,
+		hash commit.Hash,
+	) ([]commit.Commit, error),
+) Option {
+	return func(r *MockGit) {
+		r.funcs.Commits = fn
+	}
+}

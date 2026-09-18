@@ -24,6 +24,13 @@ type cli interface {
 		target string,
 		curr string,
 	) (commit.Hash, error)
+	// Commits returns the commits reachable from the current HEAD
+	// that are not reachable from the specified hash
+	// or an error if the git command execution fails.
+	Commits(
+		ctx context.Context,
+		hash commit.Hash,
+	) ([]commit.Commit, error)
 }
 
 // Client interacts with the git repository of the user's project.
