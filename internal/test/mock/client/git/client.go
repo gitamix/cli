@@ -64,3 +64,19 @@ func (m *MockGit) MergeBase(
 	}
 	return m.funcs.MergeBase(ctx, target, curr)
 }
+
+// Commits simulates the behavior of the Commits method.
+//
+// It returns the commits and the error produced by the function
+// specified with the WithCommits option.
+//
+// Panics if the behavior for the Commits method is not specified.
+func (m *MockGit) Commits(
+	ctx context.Context,
+	hash commit.Hash,
+) ([]commit.Commit, error) {
+	if m.funcs.Commits == nil {
+		panic("not specified behavior for Commits method")
+	}
+	return m.funcs.Commits(ctx, hash)
+}

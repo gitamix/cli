@@ -22,4 +22,10 @@ type funcs struct {
 		target string,
 		curr string,
 	) (commit.Hash, error)
+	// Commits is the function that is executed
+	// when Commits of MockGit is called.
+	Commits func(
+		ctx context.Context,
+		hash commit.Hash,
+	) ([]commit.Commit, error)
 }
