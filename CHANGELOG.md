@@ -12,4 +12,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Git client to interact with a git repository
 - Get current branch from a git repository
 - Get merge base of two commits or branches from a git repository
+- Get commits after the specified hash from a git repository
 - Lint current branch with config using `lint` command
