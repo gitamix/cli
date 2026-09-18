@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gitamix/types/branch"
+	"github.com/gitamix/types/commit"
 )
 
 // cli abstracts the command-line interface of git.
@@ -16,6 +17,13 @@ type cli interface {
 	CurrentBranch(
 		ctx context.Context,
 	) (branch.Branch, error)
+	// MergeBase returns the merge base commit hash of the two specified
+	// commits or branches or an error if the git command execution fails.
+	MergeBase(
+		ctx context.Context,
+		target string,
+		curr string,
+	) (commit.Hash, error)
 }
 
 // Client interacts with the git repository of the user's project.
