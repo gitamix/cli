@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gitamix/types/branch"
+	"github.com/gitamix/types/commit"
 )
 
 // MockGit simulates the behavior of the git command-line client in tests.
@@ -45,4 +46,21 @@ func (m *MockGit) CurrentBranch(
 		panic("not specified behavior for CurrentBranch method")
 	}
 	return m.funcs.CurrentBranch(ctx)
+}
+
+// MergeBase simulates the behavior of the MergeBase method.
+//
+// It returns the commit hash and the error produced by the function
+// specified with the WithMergeBase option.
+//
+// Panics if the behavior for the MergeBase method is not specified.
+func (m *MockGit) MergeBase(
+	ctx context.Context,
+	target string,
+	curr string,
+) (commit.Hash, error) {
+	if m.funcs.MergeBase == nil {
+		panic("not specified behavior for MergeBase method")
+	}
+	return m.funcs.MergeBase(ctx, target, curr)
 }
