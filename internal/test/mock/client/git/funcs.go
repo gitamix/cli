@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gitamix/types/branch"
+	"github.com/gitamix/types/commit"
 )
 
 // funcs holds the functions that are executed when the corresponding
@@ -14,4 +15,11 @@ type funcs struct {
 	CurrentBranch func(
 		ctx context.Context,
 	) (branch.Branch, error)
+	// MergeBase is the function that is executed
+	// when MergeBase of MockGit is called.
+	MergeBase func(
+		ctx context.Context,
+		target string,
+		curr string,
+	) (commit.Hash, error)
 }
