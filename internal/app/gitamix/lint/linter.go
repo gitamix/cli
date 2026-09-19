@@ -18,8 +18,8 @@ type gitClient interface {
 	CurrentBranch(
 		ctx context.Context,
 	) (branch.Branch, error)
-	// MergeBase returns the merge base commit hash of the target
-	// and the current branch or commit
+	// MergeBase returns the merge base commit hash
+	// of the two specified commits or branches
 	// or an error if the git operation fails.
 	MergeBase(
 		ctx context.Context,

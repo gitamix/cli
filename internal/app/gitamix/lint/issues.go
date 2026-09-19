@@ -14,7 +14,8 @@ import (
 //
 // Commit messages are checked for every commit reachable
 // from the current HEAD but not from the merge base
-// with the default branch of the lint configuration.
+// of the current branch with its remote counterpart on origin,
+// that is, for the commits that are not pushed to origin yet.
 // A failed git operation aborts the linting
 // and returns an error describing the failure.
 func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
@@ -37,7 +38,7 @@ func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
 	)
 	base, err := l.git.MergeBase(
 		ctx,
-		l.cfg.Branch().Default().Name(),
+		"origin/"+currbr.String(),
 		currbr.String(),
 	)
 	if err != nil {
