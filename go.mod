@@ -4,7 +4,7 @@ go 1.25.7
 
 require (
 	github.com/gitamix/git v0.1.0
-	github.com/gitamix/lint v0.1.0
+	github.com/gitamix/lint v0.1.1
 	github.com/gitamix/types v0.1.3
 	github.com/sitnikovik/osxec v0.1.0
 	github.com/spf13/cobra v1.10.2
