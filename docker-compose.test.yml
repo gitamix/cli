@@ -1,0 +1,13 @@
+services:
+  gitamix:
+    image: gitamix/gitamix:local
+    build:
+      context: .
+      dockerfile: docker/git/Dockerfile
+    container_name: gitamix-gitamix
+    working_dir: /opt/fixture/repo
+    environment:
+      GITAMIX_FIXTURE_REPO: /opt/fixture/repo
+      GITAMIX_FIXTURE_HASHES: /opt/fixture/repo/.hashes.fixture.env
+    init: true
+    tty: true
