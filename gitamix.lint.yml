@@ -32,15 +32,6 @@ commit:
           min: 10
           # Maximum number of characters allowed in the subject description.
           max: 72
-      # Task integration rules for the commit subject.
-      task:
-        # Identifier rules for the task reference in the commit subject.
-        id:
-          issue:
-            # Level for task id rules: critical, warning, info
-            level: critical
-          # Regular expression pattern for the task identifier.
-          pattern: (TASK|PROJ|BUG)-[0-9]+
     # Body rules (the text after the subject, separated by a blank line).
     body:
       # Mandate rules: commit types for which the body is mandatory.
