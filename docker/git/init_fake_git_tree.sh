@@ -15,7 +15,9 @@
 # - All commits have deterministic timestamps spanning from 2026-01-01 to 2026-01-23
 # - Commit hashes are saved to a .hashes.fixture.env file for test reference
 # - A bare clone at /opt/fixture/origin.git serving as the origin remote
+# - The origin/HEAD reference pointing to the remote default branch
 # - A final clean branch feature/TASK-123-lint checked out at main's HEAD
+# - Two unpushed commits on the lint branch ahead of its origin counterpart
 #
 
 set -euo pipefail
@@ -370,8 +372,6 @@ EOF
 # Create a clean branch checked out at main's HEAD for lint integration tests.
 # The branch name matches the pattern ^(feature|bugfix|hotfix)/[A-Z]+-\d+
 # and contains the task identifier TASK-123.
-# It points at the same commit as main, so it introduces no commits
-# that are not pushed to its remote counterpart yet.
 git checkout --quiet -b feature/TASK-123-lint
 
 # ============================================================================
@@ -379,8 +379,41 @@ git checkout --quiet -b feature/TASK-123-lint
 # ============================================================================
 
 # Create a bare clone of the fixture repository acting as the origin remote.
+# The clone is created before the unpushed lint commits below,
+# so the origin counterpart of the lint branch stays at its start point.
 git clone --quiet --bare "$repo_dir" /opt/fixture/origin.git
 # Register the bare clone as the origin remote of the fixture repository.
 git remote add origin /opt/fixture/origin.git
 # Fetch from origin to create remote-tracking refs (refs/remotes/origin/*).
 git fetch --quiet origin
+# Point origin/HEAD to the remote default branch
+# so that git can resolve the origin/HEAD reference.
+git remote set-head origin --auto
+
+# ============================================================================
+# UNPUSHED LINT COMMITS
+# ============================================================================
+
+# Add two deterministic commits on the lint branch that are not pushed
+# to its origin counterpart, so lint integration tests can verify
+# the linting of real unpushed commits in a read-only manner.
+# Both commit messages pass the complete lint ruleset.
+write_file \
+    features/lint.txt \
+    'lint-01'
+git add features/lint.txt
+GIT_AUTHOR_DATE='2026-01-24T00:00:00+0000' \
+GIT_COMMITTER_DATE='2026-01-24T00:00:00+0000' \
+git commit --quiet \
+    -m '[TASK-123] feat(lint): add unpushed fixture commits'
+
+write_file \
+    features/lint.txt \
+    'lint-01' \
+    'lint-02'
+git add features/lint.txt
+GIT_AUTHOR_DATE='2026-01-25T00:00:00+0000' \
+GIT_COMMITTER_DATE='2026-01-25T00:00:00+0000' \
+git commit --quiet \
+    -m '[TASK-123] fix(lint): correct unpushed fixture data' \
+    -m 'Corrects the fixture data used by lint checks.'
