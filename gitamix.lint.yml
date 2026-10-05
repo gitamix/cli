@@ -14,6 +14,8 @@ branch:
       level: "warning"
     # Regular expression pattern for branch names.
     pattern: ^\d+[A-Za-z_-]+$
+  default:
+    name: "master"
 # Git commit rules.
 commit:
   # Commit message rules, grouping subject and body configuration.
@@ -29,24 +31,11 @@ commit:
             # Level for description length rules: critical, warning, info
             level: warning
           # Minimum number of characters allowed in the subject description.
-          min: 10
+          min: 3
           # Maximum number of characters allowed in the subject description.
           max: 72
     # Body rules (the text after the subject, separated by a blank line).
     body:
-      # Mandate rules: commit types for which the body is mandatory.
-      mandate:
-        # Commit types for which the body is mandatory.
-        types:
-          issue:
-            # Level for body mandate rules: critical, warning, info
-            level: critical
-          # List of commit types that require a body.
-          list:
-            - fix
-            - chore
-            - refactor
-            - perf
       # Length interval for the body text.
       length:
         issue:
@@ -55,15 +44,7 @@ commit:
         # Minimum number of characters allowed in the body.
         min: 10
         # Maximum number of characters allowed in the body.
-        max: 255
-  # Scope rules for the commit subject
-  # (the part in parentheses after the type).
-  scope:
-    issue:
-      # Level for scope rules: critical, warning, info
-      level: warning
-    # Regular expression pattern for the commit scope.
-    pattern: ^[A-Za-z _-]+$
+        max: 1024
   # Allowed commit types (e.g. feat, fix, chore).
   types:
     issue:

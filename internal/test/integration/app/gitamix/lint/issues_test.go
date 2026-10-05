@@ -79,7 +79,7 @@ func TestLinter_Issues(t *testing.T) {
 						branch.WithDefault(
 							defaults.NewConfig(
 								defaults.WithName(
-									"master",
+									"main",
 								),
 							),
 						),
@@ -175,15 +175,16 @@ func TestLinter_Issues(t *testing.T) {
 	t.Run("found issues in real unpushed commits", func(t *testing.T) {
 		t.Parallel()
 
+		envs := sharedContainerFixture(t).Env()
 		want := []issue.Issue{
 			issue.NewInfo(
 				`task doesn't match the required pattern '(PROJ|BUG)-[0-9]+'`,
 			),
 			issue.NewCritical(
-				"e25f739: ticket not found in subject by expression '(PROJ|BUG)-[0-9]+'",
+				envs.MustGet("LINT_COMMIT_02")[:7] + ": ticket not found in subject by expression '(PROJ|BUG)-[0-9]+'",
 			),
 			issue.NewCritical(
-				"2d5c8c1: ticket not found in subject by expression '(PROJ|BUG)-[0-9]+'",
+				envs.MustGet("LINT_COMMIT_01")[:7] + ": ticket not found in subject by expression '(PROJ|BUG)-[0-9]+'",
 			),
 		}
 		ctx, cancel := context.WithTimeout(
@@ -227,7 +228,7 @@ func TestLinter_Issues(t *testing.T) {
 						branch.WithDefault(
 							defaults.NewConfig(
 								defaults.WithName(
-									"master",
+									"main",
 								),
 							),
 						),
@@ -368,7 +369,7 @@ func TestLinter_Issues(t *testing.T) {
 						branch.WithDefault(
 							defaults.NewConfig(
 								defaults.WithName(
-									"master",
+									"main",
 								),
 							),
 						),
@@ -380,9 +381,8 @@ func TestLinter_Issues(t *testing.T) {
 		assert.NoError(t, gotErr)
 	})
 
-	t.Run("empty config produces no issues", func(t *testing.T) {
+	t.Run("fails on empty config", func(t *testing.T) {
 		t.Parallel()
-		want := []issue.Issue{}
 		ctx, cancel := context.WithTimeout(
 			context.Background(),
 			30*time.Second,
@@ -400,8 +400,12 @@ func TestLinter_Issues(t *testing.T) {
 			),
 			*config.NewConfig(),
 		).Issues(ctx)
-		assert.Equal(t, want, got)
-		assert.NoError(t, gotErr)
+		assert.Nil(t, got)
+		assert.EqualError(
+			t,
+			gotErr,
+			"invalid config: empty default branch name",
+		)
 	})
 
 	t.Run("fails on canceled context", func(t *testing.T) {

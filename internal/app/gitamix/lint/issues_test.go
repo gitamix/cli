@@ -1100,6 +1100,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithTypes(
@@ -1162,6 +1173,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithMessage(
@@ -1230,6 +1252,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithTypes(
@@ -1292,6 +1325,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithTypes(
@@ -1354,6 +1398,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithScope(
@@ -1410,6 +1465,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithMessage(
@@ -1477,6 +1543,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithMessage(
@@ -1536,6 +1613,17 @@ func TestLinter_Issues(t *testing.T) {
 					),
 				),
 				*config.NewConfig(
+					config.WithBranch(
+						branchConfig.NewConfig(
+							branchConfig.WithDefault(
+								defaults.NewConfig(
+									defaults.WithName(
+										"master",
+									),
+								),
+							),
+						),
+					),
 					config.WithCommit(
 						commitConfig.NewConfig(
 							commitConfig.WithMessage(
@@ -1570,5 +1658,30 @@ func TestLinter_Issues(t *testing.T) {
 			Issues(context.Background())
 		assert.Equal(t, want, got)
 		assert.NoError(t, gotErr)
+	})
+
+	t.Run("failed on empty default branch name", func(t *testing.T) {
+		t.Parallel()
+		got, gotErr := impl.
+			NewLinter(
+				mockGit.NewClient(
+					mockGit.WithCurrentBranch(
+						func(_ context.Context) (branch.Branch, error) {
+							return branch.
+								NewBranch(
+									branch.NewName("feature/TASK-123"),
+								), nil
+						},
+					),
+				),
+				*config.NewConfig(),
+			).
+			Issues(context.Background())
+		assert.Nil(t, got)
+		assert.EqualError(
+			t,
+			gotErr,
+			"invalid config: empty default branch name",
+		)
 	})
 }

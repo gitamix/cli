@@ -7,6 +7,8 @@ import (
 	lintBranch "github.com/gitamix/lint/branch"
 	lintCommit "github.com/gitamix/lint/commit"
 	"github.com/gitamix/lint/issue"
+
+	"github.com/gitamix/cli/internal/validation/gitamix/lint/config"
 )
 
 // Issues returns all issues found in the current branch name
@@ -14,8 +16,12 @@ import (
 //
 // Commit messages are checked for every commit reachable
 // from the current HEAD but not from the merge base
-// of the current branch with its remote counterpart on origin,
-// that is, for the commits that are not pushed to origin yet.
+// of the current branch with the default branch of the configuration,
+// that is, for the commits that are not merged to the default branch yet.
+//
+// An empty default branch name in the configuration aborts the linting
+// with an error, since the merge base cannot be resolved then.
+//
 // A failed git operation aborts the linting
 // and returns an error describing the failure.
 func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
@@ -23,6 +29,15 @@ func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to get current branch: %s",
+			err,
+		)
+	}
+	err = config.
+		NewValidation(l.cfg).
+		Validate()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"invalid config: %w",
 			err,
 		)
 	}
@@ -38,7 +53,7 @@ func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
 	)
 	base, err := l.git.MergeBase(
 		ctx,
-		"origin/"+currbr.String(),
+		l.cfg.Branch().Default().Name(),
 		currbr.String(),
 	)
 	if err != nil {

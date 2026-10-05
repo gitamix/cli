@@ -9,15 +9,13 @@
 #   repo_directory - Path where the fixture repository will be created (default: /opt/fixture/repo)
 #
 # The generated repository includes:
-# - A main branch with 10 first-parent commits
+# - A main branch with 11 first-parent commits, including a revert commit
 # - A feature-merge branch with 7 commits that gets merged into main
 # - A release/1.0.0 branch with merged alpha and beta release features
-# - All commits have deterministic timestamps spanning from 2026-01-01 to 2026-01-23
+# - All commits have deterministic timestamps spanning from 2026-01-01 to 2026-01-25
 # - Commit hashes are saved to a .hashes.fixture.env file for test reference
-# - A bare clone at /opt/fixture/origin.git serving as the origin remote
-# - The origin/HEAD reference pointing to the remote default branch
 # - A final clean branch feature/TASK-123-lint checked out at main's HEAD
-# - Two unpushed commits on the lint branch ahead of its origin counterpart
+# - Two unpushed commits on the lint branch ahead of the default branch
 #
 
 set -euo pipefail
@@ -81,8 +79,18 @@ merge_with_date() {
     git merge --quiet --no-ff --no-edit -m "$message" "$branch"
 }
 
+# Helper function to create a revert commit with a specific timestamp
+# Usage: revert_with_date <timestamp> <commit_to_revert>
+revert_with_date() {
+    local when="$1"
+    local target="$2"
+    GIT_AUTHOR_DATE="$when" \
+    GIT_COMMITTER_DATE="$when" \
+    git revert --quiet --no-edit "$target"
+}
+
 # ============================================================================
-# MAIN BRANCH HISTORY (10 first-parent commits)
+# MAIN BRANCH HISTORY (11 first-parent commits)
 # ============================================================================
 
 # Commit 1: Initialize repository with basic files
@@ -270,6 +278,13 @@ commit_with_date \
     '2026-01-17T00:00:00+0000' \
     'docs(main): add tenth first-parent commit'
 
+# Commit 10 (revert): Revert the tenth first-parent commit.
+# The commit is created by git itself and carries the default
+# revert subject "Revert <original subject>".
+revert_with_date \
+    '2026-01-24T00:00:00+0000' \
+    'HEAD'
+
 # ============================================================================
 # RELEASE BRANCH: release/1.0.0
 # ============================================================================
@@ -336,66 +351,20 @@ merge_with_date \
     'merge(feature/release-beta): prepare release'
 
 # ============================================================================
-# SAVE COMMIT HASHES FOR TEST REFERENCE
-# ============================================================================
-
-# Generate a file with commit hashes that tests can use to verify Git operations
-# The hashes are saved in a format that can be sourced in shell scripts
-cat > "$hashes_file" <<EOF
-GITAMIX_FIXTURE_REPO=$repo_dir
-MAIN_FIRST_PARENT_01=$(git rev-list --first-parent --reverse main | sed -n '1p')
-MAIN_FIRST_PARENT_02=$(git rev-list --first-parent --reverse main | sed -n '2p')
-MAIN_FIRST_PARENT_03=$(git rev-list --first-parent --reverse main | sed -n '3p')
-MAIN_FIRST_PARENT_04=$(git rev-list --first-parent --reverse main | sed -n '4p')
-MAIN_FIRST_PARENT_05=$(git rev-list --first-parent --reverse main | sed -n '5p')
-MAIN_FIRST_PARENT_06=$(git rev-list --first-parent --reverse main | sed -n '6p')
-MAIN_FIRST_PARENT_07=$(git rev-list --first-parent --reverse main | sed -n '7p')
-MAIN_FIRST_PARENT_08=$(git rev-list --first-parent --reverse main | sed -n '8p')
-MAIN_FIRST_PARENT_09=$(git rev-list --first-parent --reverse main | sed -n '9p')
-MAIN_FIRST_PARENT_10=$(git rev-list --first-parent --reverse main | sed -n '10p')
-FEATURE_MERGE_01=$(git rev-list --reverse feature-merge ^main~5 | sed -n '1p')
-FEATURE_MERGE_02=$(git rev-list --reverse feature-merge ^main~5 | sed -n '2p')
-FEATURE_MERGE_03=$(git rev-list --reverse feature-merge ^main~5 | sed -n '3p')
-FEATURE_MERGE_04=$(git rev-list --reverse feature-merge ^main~5 | sed -n '4p')
-FEATURE_MERGE_05=$(git rev-list --reverse feature-merge ^main~5 | sed -n '5p')
-FEATURE_MERGE_06=$(git rev-list --reverse feature-merge ^main~5 | sed -n '6p')
-FEATURE_MERGE_07=$(git rev-list --reverse feature-merge ^main~5 | sed -n '7p')
-RELEASE_HEAD=$(git rev-parse release/1.0.0)
-RELEASE_ALPHA_HEAD=$(git rev-parse feature/release-alpha)
-RELEASE_BETA_HEAD=$(git rev-parse feature/release-beta)
-EOF
-
-# ============================================================================
 # CLEAN LINT BRANCH: feature/TASK-123-lint
 # ============================================================================
 
 # Create a clean branch checked out at main's HEAD for lint integration tests.
 # The branch name matches the pattern ^(feature|bugfix|hotfix)/[A-Z]+-\d+
 # and contains the task identifier TASK-123.
-git checkout --quiet -b feature/TASK-123-lint
-
-# ============================================================================
-# REMOTE ORIGIN
-# ============================================================================
-
-# Create a bare clone of the fixture repository acting as the origin remote.
-# The clone is created before the unpushed lint commits below,
-# so the origin counterpart of the lint branch stays at its start point.
-git clone --quiet --bare "$repo_dir" /opt/fixture/origin.git
-# Register the bare clone as the origin remote of the fixture repository.
-git remote add origin /opt/fixture/origin.git
-# Fetch from origin to create remote-tracking refs (refs/remotes/origin/*).
-git fetch --quiet origin
-# Point origin/HEAD to the remote default branch
-# so that git can resolve the origin/HEAD reference.
-git remote set-head origin --auto
+git checkout --quiet -b feature/TASK-123-lint main
 
 # ============================================================================
 # UNPUSHED LINT COMMITS
 # ============================================================================
 
-# Add two deterministic commits on the lint branch that are not pushed
-# to its origin counterpart, so lint integration tests can verify
+# Add two deterministic commits on the lint branch that are not merged
+# to the default branch, so lint integration tests can verify
 # the linting of real unpushed commits in a read-only manner.
 # Both commit messages pass the complete lint ruleset.
 write_file \
@@ -417,3 +386,41 @@ GIT_COMMITTER_DATE='2026-01-25T00:00:00+0000' \
 git commit --quiet \
     -m '[TASK-123] fix(lint): correct unpushed fixture data' \
     -m 'Corrects the fixture data used by lint checks.'
+
+# ============================================================================
+# SAVE COMMIT HASHES FOR TEST REFERENCE
+# ============================================================================
+
+# The base commit of the feature-merge branch:
+# the fifth first-parent commit of main.
+feature_base=$(git rev-list --first-parent --reverse main | sed -n '5p')
+
+# Generate a file with commit hashes that tests can use to verify Git operations
+# The hashes are saved in a format that can be sourced in shell scripts
+cat > "$hashes_file" <<EOF
+GITAMIX_FIXTURE_REPO=$repo_dir
+MAIN_FIRST_PARENT_01=$(git rev-list --first-parent --reverse main | sed -n '1p')
+MAIN_FIRST_PARENT_02=$(git rev-list --first-parent --reverse main | sed -n '2p')
+MAIN_FIRST_PARENT_03=$(git rev-list --first-parent --reverse main | sed -n '3p')
+MAIN_FIRST_PARENT_04=$(git rev-list --first-parent --reverse main | sed -n '4p')
+MAIN_FIRST_PARENT_05=$(git rev-list --first-parent --reverse main | sed -n '5p')
+MAIN_FIRST_PARENT_06=$(git rev-list --first-parent --reverse main | sed -n '6p')
+MAIN_FIRST_PARENT_07=$(git rev-list --first-parent --reverse main | sed -n '7p')
+MAIN_FIRST_PARENT_08=$(git rev-list --first-parent --reverse main | sed -n '8p')
+MAIN_FIRST_PARENT_09=$(git rev-list --first-parent --reverse main | sed -n '9p')
+MAIN_FIRST_PARENT_10=$(git rev-list --first-parent --reverse main | sed -n '10p')
+MAIN_FIRST_PARENT_11=$(git rev-list --first-parent --reverse main | sed -n '11p')
+MAIN_REVERT_01=$(git rev-list --first-parent --reverse main | sed -n '11p')
+FEATURE_MERGE_01=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '1p')
+FEATURE_MERGE_02=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '2p')
+FEATURE_MERGE_03=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '3p')
+FEATURE_MERGE_04=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '4p')
+FEATURE_MERGE_05=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '5p')
+FEATURE_MERGE_06=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '6p')
+FEATURE_MERGE_07=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '7p')
+RELEASE_HEAD=$(git rev-parse release/1.0.0)
+RELEASE_ALPHA_HEAD=$(git rev-parse feature/release-alpha)
+RELEASE_BETA_HEAD=$(git rev-parse feature/release-beta)
+LINT_COMMIT_01=$(git rev-parse feature/TASK-123-lint~1)
+LINT_COMMIT_02=$(git rev-parse feature/TASK-123-lint)
+EOF
