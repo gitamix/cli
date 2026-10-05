@@ -33,3 +33,6 @@ go.work.sum
 .idea/
 .vscode/
 .obsidian/
+
+# Build output
+bin/
