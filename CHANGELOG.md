@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Critical default level for configured rules without an explicit level
 - Git client to interact with a git repository
 - Get current branch from a git repository
 - Get merge base of two commits or branches from a git repository

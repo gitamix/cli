@@ -7,6 +7,7 @@ import (
 
 	"github.com/gitamix/git/client/git"
 	"github.com/gitamix/lint/config"
+	"github.com/gitamix/lint/issue"
 	"github.com/sitnikovik/osxec/shell"
 	"github.com/spf13/cobra"
 
@@ -50,13 +51,25 @@ subject length checks, scope enforcement, and task ID verification`,
 				)
 				os.Exit(1)
 			}
+			var fails int
 			fmt.Printf("%d issues\n", len(issues))
 			for _, is := range issues {
+				typ := is.Type()
+				if typ.Unspecified() {
+					typ = issue.Critical
+				}
+				if typ.In(issue.Critical) {
+					fails++
+				}
 				fmt.Printf(
 					"%s: %s\n",
-					is.Type().String(),
+					typ.String(),
 					is.Message(),
 				)
+			}
+			if fails > 0 {
+				fmt.Printf("Found %d issues that fail the linting.\n", fails)
+				os.Exit(1)
 			}
 		},
 	}
