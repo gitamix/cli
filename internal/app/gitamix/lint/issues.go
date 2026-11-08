@@ -7,8 +7,6 @@ import (
 	lintBranch "github.com/gitamix/lint/branch"
 	lintCommit "github.com/gitamix/lint/commit"
 	"github.com/gitamix/lint/issue"
-
-	"github.com/gitamix/cli/internal/validation/gitamix/lint/config"
 )
 
 // Issues returns all issues found in the current branch name
@@ -32,9 +30,7 @@ func (l Linter) Issues(ctx context.Context) ([]issue.Issue, error) {
 			err,
 		)
 	}
-	err = config.
-		NewValidation(l.cfg).
-		Validate()
+	err = l.cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf(
 			"invalid config: %w",

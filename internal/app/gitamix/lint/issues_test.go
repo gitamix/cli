@@ -1681,7 +1681,7 @@ func TestLinter_Issues(t *testing.T) {
 		assert.EqualError(
 			t,
 			gotErr,
-			"invalid config: empty default branch name",
+			"invalid config: invalid branch: invalid default branch: empty default branch name",
 		)
 	})
 }
