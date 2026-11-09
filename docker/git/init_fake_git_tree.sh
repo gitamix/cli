@@ -388,6 +388,57 @@ git commit --quiet \
     -m 'Corrects the fixture data used by lint checks.'
 
 # ============================================================================
+# MERGE LINT BRANCH: feature/TASK-123-merge
+# ============================================================================
+
+# Create a branch checked out at release/1.0.0 for lint integration tests
+# of the merge commits skipping.
+# The branch history contains the two release merges
+# and the four ordinary release feature commits, so the linting
+# of the branch against the default main branch covers
+# the merge commits skipping deterministically.
+git checkout --quiet -b feature/TASK-123-merge release/1.0.0
+
+# ============================================================================
+# REVERT LINT BRANCH: feature/TASK-123-revert
+# ============================================================================
+
+# Create a branch checked out at main for lint integration tests
+# of the revert commits skipping.
+# The branch appends one clean docs commit to the main history
+# and reverts it, so the revert commit is the only commit
+# that does not match the lint rules in the branch range.
+git checkout --quiet -b feature/TASK-123-revert main
+write_file \
+    features/revert.txt \
+    'revert-01'
+git add features/revert.txt
+GIT_AUTHOR_DATE='2026-01-26T00:00:00+0000' \
+GIT_COMMITTER_DATE='2026-01-26T00:00:00+0000' \
+git commit --quiet \
+    -m '[TASK-123] docs(lint): add revert fixture commit'
+GIT_AUTHOR_DATE='2026-01-27T00:00:00+0000' \
+GIT_COMMITTER_DATE='2026-01-27T00:00:00+0000' \
+git revert --quiet --no-edit HEAD
+
+# ============================================================================
+# LINT SCENARIO CHECKOUTS
+# ============================================================================
+
+# Restore the default checkout of the clean lint branch,
+# so the main lint integration tests observe the same repository state.
+git checkout --quiet feature/TASK-123-lint
+
+# Clone the repository into dedicated checkouts, so lint integration tests
+# can lint the merge and revert scenarios without mutating the main fixture.
+# Each clone checks out its own scenario branch and picks up
+# the local default branch, so the merge base can be resolved.
+git clone --quiet --branch feature/TASK-123-merge "$repo_dir" "$repo_dir-merge"
+git -C "$repo_dir-merge" fetch --quiet origin main:main
+git clone --quiet --branch feature/TASK-123-revert "$repo_dir" "$repo_dir-revert"
+git -C "$repo_dir-revert" fetch --quiet origin main:main
+
+# ============================================================================
 # SAVE COMMIT HASHES FOR TEST REFERENCE
 # ============================================================================
 
@@ -420,7 +471,11 @@ FEATURE_MERGE_06=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -
 FEATURE_MERGE_07=$(git rev-list --reverse feature-merge ^"$feature_base" | sed -n '7p')
 RELEASE_HEAD=$(git rev-parse release/1.0.0)
 RELEASE_ALPHA_HEAD=$(git rev-parse feature/release-alpha)
+RELEASE_ALPHA_01=$(git rev-parse feature/release-alpha~1)
 RELEASE_BETA_HEAD=$(git rev-parse feature/release-beta)
+RELEASE_BETA_01=$(git rev-parse feature/release-beta~1)
 LINT_COMMIT_01=$(git rev-parse feature/TASK-123-lint~1)
 LINT_COMMIT_02=$(git rev-parse feature/TASK-123-lint)
+LINT_MERGE_REPO=$repo_dir-merge
+LINT_REVERT_REPO=$repo_dir-revert
 EOF

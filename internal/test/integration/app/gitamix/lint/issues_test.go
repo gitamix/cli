@@ -404,7 +404,7 @@ func TestLinter_Issues(t *testing.T) {
 		assert.EqualError(
 			t,
 			gotErr,
-			"invalid config: empty default branch name",
+			"invalid config: invalid branch: invalid default branch: empty default branch name",
 		)
 	})
 
@@ -432,5 +432,293 @@ func TestLinter_Issues(t *testing.T) {
 			gotErr.Error(),
 			"context canceled",
 		)
+	})
+
+	t.Run("skips merge commits of an unmerged branch", func(t *testing.T) {
+		t.Parallel()
+		env := sharedContainerFixture(t).Env()
+		want := []issue.Issue{
+			issue.NewCritical(
+				env.MustGet("RELEASE_BETA_HEAD")[:7] + ": ticket not found in subject by expression '(TASK|PROJ|BUG)-[0-9]+'",
+			),
+			issue.NewCritical(
+				env.MustGet("RELEASE_BETA_01")[:7] + ": ticket not found in subject by expression '(TASK|PROJ|BUG)-[0-9]+'",
+			),
+			issue.NewCritical(
+				env.MustGet("RELEASE_ALPHA_HEAD")[:7] + ": ticket not found in subject by expression '(TASK|PROJ|BUG)-[0-9]+'",
+			),
+			issue.NewCritical(
+				env.MustGet("RELEASE_ALPHA_01")[:7] + ": ticket not found in subject by expression '(TASK|PROJ|BUG)-[0-9]+'",
+			),
+		}
+		ctx, cancel := context.WithTimeout(
+			context.Background(),
+			30*time.Second,
+		)
+		defer cancel()
+		got, gotErr := impl.NewLinter(
+			igit.NewClient(
+				git.NewClient(
+					shfx.NewShell(
+						sharedContainerFixture(t).
+							Container(),
+						env.MustGet("LINT_MERGE_REPO"),
+					),
+				),
+			),
+			*config.NewConfig(
+				config.WithBranch(
+					branch.NewConfig(
+						branch.WithTask(
+							task.NewConfig(
+								task.WithID(
+									id.NewConfig(
+										value.NewString(
+											issue.Info,
+											`(TASK|PROJ|BUG)-[0-9]+`,
+										),
+									),
+								),
+							),
+						),
+						branch.WithName(
+							name.NewConfig(
+								value.NewString(
+									issue.Warning,
+									`^(feature|bugfix|hotfix)/[A-Z]+-\d+`,
+								),
+							),
+						),
+						branch.WithDefault(
+							defaults.NewConfig(
+								defaults.WithName(
+									"main",
+								),
+							),
+						),
+					),
+				),
+				config.WithCommit(
+					commit.NewConfig(
+						commit.WithMessage(
+							message.NewConfig(
+								message.WithSubject(
+									subject.NewConfig(
+										subject.WithDescription(
+											description.NewConfig(
+												description.WithLength(
+													value.NewRange(
+														issue.Warning,
+														10,
+														72,
+													),
+												),
+											),
+										),
+										subject.WithTask(
+											task.NewConfig(
+												task.WithID(
+													id.NewConfig(
+														value.NewString(
+															issue.Critical,
+															`(TASK|PROJ|BUG)-[0-9]+`,
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+								message.WithBody(
+									body.NewConfig(
+										body.WithLength(
+											value.NewRange(
+												issue.Info,
+												10,
+												255,
+											),
+										),
+										body.WithMandate(
+											mandate.NewConfig(
+												mandate.WithTypes(
+													value.NewStrings(
+														issue.Critical,
+														"fix",
+														"chore",
+														"refactor",
+														"perf",
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+						commit.WithScope(
+							scope.NewConfig(
+								value.NewString(
+									issue.Warning,
+									`^[A-Za-z _-]+$`,
+								),
+							),
+						),
+						commit.WithTypes(
+							types.NewConfig(
+								value.NewStrings(
+									issue.Critical,
+									"feat",
+									"fix",
+									"chore",
+									"refactor",
+									"perf",
+									"test",
+									"docs",
+								),
+							),
+						),
+					),
+				),
+			),
+		).Issues(ctx)
+		assert.Equal(t, want, got)
+		assert.NoError(t, gotErr)
+	})
+	t.Run("skips revert commit on the current branch", func(t *testing.T) {
+		t.Parallel()
+		env := sharedContainerFixture(t).Env()
+		want := []issue.Issue{}
+		ctx, cancel := context.WithTimeout(
+			context.Background(),
+			30*time.Second,
+		)
+		defer cancel()
+		got, gotErr := impl.NewLinter(
+			igit.NewClient(
+				git.NewClient(
+					shfx.NewShell(
+						sharedContainerFixture(t).
+							Container(),
+						env.MustGet("LINT_REVERT_REPO"),
+					),
+				),
+			),
+			*config.NewConfig(
+				config.WithBranch(
+					branch.NewConfig(
+						branch.WithTask(
+							task.NewConfig(
+								task.WithID(
+									id.NewConfig(
+										value.NewString(
+											issue.Info,
+											`(TASK|PROJ|BUG)-[0-9]+`,
+										),
+									),
+								),
+							),
+						),
+						branch.WithName(
+							name.NewConfig(
+								value.NewString(
+									issue.Warning,
+									`^(feature|bugfix|hotfix)/[A-Z]+-\d+`,
+								),
+							),
+						),
+						branch.WithDefault(
+							defaults.NewConfig(
+								defaults.WithName(
+									"main",
+								),
+							),
+						),
+					),
+				),
+				config.WithCommit(
+					commit.NewConfig(
+						commit.WithMessage(
+							message.NewConfig(
+								message.WithSubject(
+									subject.NewConfig(
+										subject.WithDescription(
+											description.NewConfig(
+												description.WithLength(
+													value.NewRange(
+														issue.Warning,
+														10,
+														72,
+													),
+												),
+											),
+										),
+										subject.WithTask(
+											task.NewConfig(
+												task.WithID(
+													id.NewConfig(
+														value.NewString(
+															issue.Critical,
+															`(TASK|PROJ|BUG)-[0-9]+`,
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+								message.WithBody(
+									body.NewConfig(
+										body.WithLength(
+											value.NewRange(
+												issue.Info,
+												10,
+												255,
+											),
+										),
+										body.WithMandate(
+											mandate.NewConfig(
+												mandate.WithTypes(
+													value.NewStrings(
+														issue.Critical,
+														"fix",
+														"chore",
+														"refactor",
+														"perf",
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+						commit.WithScope(
+							scope.NewConfig(
+								value.NewString(
+									issue.Warning,
+									`^[A-Za-z _-]+$`,
+								),
+							),
+						),
+						commit.WithTypes(
+							types.NewConfig(
+								value.NewStrings(
+									issue.Critical,
+									"feat",
+									"fix",
+									"chore",
+									"refactor",
+									"perf",
+									"test",
+									"docs",
+								),
+							),
+						),
+					),
+				),
+			),
+		).Issues(ctx)
+		assert.Equal(t, want, got)
+		assert.NoError(t, gotErr)
 	})
 }
