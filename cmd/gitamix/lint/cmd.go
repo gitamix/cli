@@ -6,12 +6,12 @@ import (
 	"os"
 
 	"github.com/gitamix/git/client/git"
-	"github.com/gitamix/lint/branch"
 	"github.com/gitamix/lint/config"
 	"github.com/gitamix/lint/issue"
 	"github.com/sitnikovik/osxec/shell"
 	"github.com/spf13/cobra"
 
+	"github.com/gitamix/cli/internal/app/gitamix/lint"
 	igit "github.com/gitamix/cli/internal/client/git"
 )
 
@@ -41,31 +41,35 @@ subject length checks, scope enforcement, and task ID verification`,
 					shell.NewShell(),
 				),
 			)
-			currbr, err := cli.CurrentBranch(ctx)
+			issues, err := lint.
+				NewLinter(cli, *cfg).
+				Issues(ctx)
 			if err != nil {
 				fmt.Printf(
-					"ERROR: failed to get current branch: %s\n",
+					"ERROR: %s\n",
 					err,
 				)
 				os.Exit(1)
 			}
-			iss := make([]issue.Issue, 0, 10)
-			iss = append(
-				iss,
-				branch.
-					NewBranch(
-						currbr,
-						cfg.Branch(),
-					).
-					Issues()...,
-			)
-			fmt.Printf("%d issues\n", len(iss))
-			for _, is := range iss {
+			var fails int
+			fmt.Printf("%d issues\n", len(issues))
+			for _, is := range issues {
+				typ := is.Type()
+				if typ.Unspecified() {
+					typ = issue.Critical
+				}
+				if typ.In(issue.Critical) {
+					fails++
+				}
 				fmt.Printf(
 					"%s: %s\n",
-					is.Type().String(),
+					typ.String(),
 					is.Message(),
 				)
+			}
+			if fails > 0 {
+				fmt.Printf("Found %d issues that fail the linting.\n", fails)
+				os.Exit(1)
 			}
 		},
 	}
